@@ -1,0 +1,161 @@
+/* Only styles the review page after the add-on's JavaScript adds this class. */
+body.ps-review-enabled {
+  --ps-review-bg: #121715;
+  --ps-review-surface: #1c2420;
+  --ps-review-elevated: #25302a;
+  --ps-review-text: #f2f7f3;
+  --ps-review-muted: #aab7b0;
+  --ps-review-border: #36433b;
+  --ps-review-primary: #57c4a1;
+  background: var(--ps-review-bg);
+}
+body.ps-review-enabled:not(.nightMode):not(.night_mode) {
+  --ps-review-bg: #f8f9f6;
+  --ps-review-surface: #fff;
+  --ps-review-elevated: #ebe9e4;
+  --ps-review-text: #171716;
+  --ps-review-muted: #6b706d;
+  --ps-review-border: #e2e7e3;
+  --ps-review-primary: #027f62;
+}
+#ps-review-header {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  margin: 0 auto 18px;
+  max-width: 1000px;
+  padding: 12px 16px;
+  width: 100%;
+}
+#ps-review-header * {
+  box-sizing: border-box;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+#ps-review-header .ps-review-breadcrumb {
+  color: var(--ps-review-muted);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#ps-review-header .ps-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+#ps-review-header button {
+  background: var(--ps-review-surface);
+  border: 1px solid var(--ps-review-border);
+  border-radius: 8px;
+  color: var(--ps-review-text);
+  cursor: pointer;
+  font-size: 12px;
+  margin: 0;
+  padding: 6px 9px;
+}
+#ps-review-header button:hover {
+  border-color: var(--ps-review-primary);
+  color: var(--ps-review-primary);
+}
+body.ps-review-enabled.ps-review-layout #qa {
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: var(--ps-review-card-width, 960px);
+  min-height: 0;
+  width: calc(100% - 32px);
+}
+body.ps-review-enabled.ps-review-layout #qa > .ps-review-panel {
+  background: var(--ps-review-surface);
+  border: 1px solid var(--ps-review-border);
+  border-radius: 16px;
+  margin: 0 0 18px;
+  padding: 32px 36px;
+}
+body.ps-review-enabled.ps-review-layout .ps-review-panel--answer {
+  background: var(--ps-review-elevated);
+}
+body.ps-review-enabled.ps-review-layout .ps-review-panel__title {
+  color: var(--ps-review-primary);
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  margin: 0 0 18px;
+  text-transform: uppercase;
+}
+/* Compatibility mode deliberately leaves card-template color, font and inline
+   layout declarations alone; this is only the outer reading surface. */
+body.ps-review-enabled.ps-review-layout.ps-review-compat .ps-review-panel {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+}
+body.ps-review-enabled.ps-review-layout:not(.ps-review-compat) .ps-review-panel {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+  color: var(--ps-review-text);
+}
+body.ps-review-enabled.ps-review-base-type #qa {
+  font-size: 20px;
+  line-height: 1.65;
+}
+body.ps-review-enabled.ps-review-base-type #qa p {
+  margin: 0 0 1em;
+}
+body.ps-review-enabled.ps-review-base-type #qa div + div {
+  margin-top: 0.7em;
+}
+body.ps-review-enabled.ps-review-base-type #qa ul,
+body.ps-review-enabled.ps-review-base-type #qa ol {
+  margin: 1em 0;
+  padding-inline-start: 1.5em;
+}
+body.ps-review-enabled.ps-review-base-type #qa li + li {
+  margin-top: 0.35em;
+}
+body.ps-review-enabled.ps-review-base-type #qa h1,
+body.ps-review-enabled.ps-review-base-type #qa h2,
+body.ps-review-enabled.ps-review-base-type #qa h3,
+body.ps-review-enabled.ps-review-base-type #qa h4 {
+  line-height: 1.25;
+  margin: 1.25em 0 0.55em;
+}
+body.ps-review-enabled.ps-review-base-type #qa blockquote {
+  border-inline-start: 3px solid var(--ps-review-primary);
+  margin: 1em 0;
+  padding-inline-start: 1em;
+}
+body.ps-review-enabled.ps-review-highlight-answer .ps-review-panel--answer {
+  border-color: color-mix(in srgb, var(--ps-review-primary) 40%, var(--ps-review-border));
+}
+@media (max-width: 720px) {
+  #ps-review-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 10px 16px;
+  }
+  #ps-review-header .ps-review-actions {
+    justify-content: flex-start;
+  }
+  body.ps-review-enabled.ps-review-layout #qa {
+    width: calc(100% - 20px);
+  }
+  body.ps-review-enabled.ps-review-layout #qa > .ps-review-panel {
+    padding: 22px 20px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.ps-review-enabled #qa {
+    transition: none;
+  }
+}

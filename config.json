@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "overview_enabled": true,
+  "reviewer_enabled": true,
+  "reviewer_compatibility_mode": true,
+  "reviewer_visual_layout": true,
+  "reviewer_card_width": 960,
+  "reviewer_base_typography": true,
+  "reviewer_highlight_answer": true,
+  "show_descriptions": true,
+  "show_counters": true,
+  "sort": "name",
+  "icon_style": "folder",
+  "animations": true,
+  "ambient_background": false
+}
