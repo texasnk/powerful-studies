@@ -115,7 +115,7 @@ Após alterar `__init__.py` ou a lista de arquivos exportados da WebView, feche 
 
 Ao abrir um deck, o Powerful Studies também substitui a visão geral por um painel de flashcards. Ele mostra contagens nativas disponíveis para estudo, total de cards encontrados e uma página de até 25 cards reais do deck. A busca é enviada à pesquisa nativa do Anki ao pressionar `Enter`; os filtros de estado e inclusão de subdecks também usam `Collection.find_cards()`.
 
-Mesmo quando não há cards disponíveis para estudar, a tela continua acessível e exibe **Revisões concluídas por hoje**. Use **Novo subdeck** para criar um filho do deck aberto e **Novo card** para criar uma nota do tipo Basic com Frente, Verso e tags. Os registros são criados pela coleção do Anki e aparecem na lista após a atualização da tela.
+Mesmo quando não há cards disponíveis para estudar, a tela continua acessível e exibe **Revisões concluídas por hoje**. Use **Novo subdeck** para criar um filho do deck aberto. **Novo card** abre o criador original do Anki já apontando para o deck atual; nele é possível escolher Basic, Cloze, Image Occlusion e qualquer outro tipo de nota disponível no perfil, com todos os recursos nativos de formatação, mídia e edição.
 
 Use **Ver resposta** para expandir a representação segura em texto do verso e **Editar** para abrir o Navegador/Editor nativo da nota correspondente. A seleção é feita por ID de card; **Selecionar página** afeta apenas os 25 itens visíveis. Excluir informa o número de notas e cards irmãos afetados, pois a operação nativa remove notas inteiras. A interface não altera o scheduler.
 

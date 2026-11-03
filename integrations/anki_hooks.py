@@ -13,7 +13,7 @@ from aqt.browser.browser import Browser
 from aqt.deckbrowser import DeckBrowser
 from aqt.deckoptions import display_options_for_deck, display_options_for_deck_id
 from aqt.operations.deck import add_deck, remove_decks, rename_deck, set_current_deck
-from aqt.operations.note import add_note, remove_notes
+from aqt.operations.note import remove_notes
 from aqt.overview import Overview
 from aqt.reviewer import Reviewer
 from aqt.qt import QAction, QCursor, QMenu
@@ -24,7 +24,7 @@ from ..core.services.appearance_service import AppearanceService
 from ..core.services.deck_cards_service import DeckCardsService
 from ..integrations.anki_decks import AnkiDeckService
 from ..ui.appearance_dialog import AppearanceDialog
-from ..ui.creation_dialogs import BasicCardDialog, SubdeckDialog
+from ..ui.creation_dialogs import SubdeckDialog
 from ..ui.settings_dialog import SettingsDialog
 
 DEFAULT_SETTINGS = {"enabled": True, "overview_enabled": True, "reviewer_enabled": True, "reviewer_compatibility_mode": True, "reviewer_visual_layout": True, "reviewer_card_width": 960, "reviewer_base_typography": True, "reviewer_highlight_answer": True, "show_descriptions": True, "show_counters": True, "sort": "name", "icon_style": "folder", "animations": True, "ambient_background": False}
@@ -382,23 +382,14 @@ class DeckOverviewController:
         add_deck(parent=mw, name=full_name).success(lambda _: overview.refresh()).run_in_background(initiator=self)
 
     def _new_card(self, overview: Overview) -> None:
-        deck = mw.col.decks.current()
-        dialog = BasicCardDialog(mw, deck["name"])
-        if not dialog.exec():
-            return
-        front, back, tags = dialog.values()
-        if not front or not back:
-            showWarning("Preencha Frente e Verso.", parent=mw)
-            return
-        model = mw.col.models.by_name("Basic")
-        if model is None or not {"Front", "Back"}.issubset({field["name"] for field in model["flds"]}):
-            showWarning("O tipo de nota Basic com os campos Front e Back não está disponível.", parent=mw)
-            return
-        note = mw.col.new_note(model)
-        note["Front"] = front
-        note["Back"] = back
-        note.tags = tags
-        add_note(parent=mw, note=note, target_deck_id=DeckId(int(deck["id"]))).success(lambda _: overview.refresh()).run_in_background(initiator=self)
+        self._open_native_add_cards(int(mw.col.decks.current()["id"]))
+
+    @staticmethod
+    def _open_native_add_cards(deck_id: int) -> None:
+        from aqt.addcards import NewAddCards
+
+        window = NewAddCards(mw)
+        window.load_new_note(deck_id=DeckId(deck_id))
 
     def _update_query(self, payload: dict[str, Any]) -> None:
         self.state.search = str(payload.get("search", ""))[:500]
