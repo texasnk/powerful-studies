@@ -1,0 +1,40 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.ankiaddon
+.vscode/
+.idea/
+*.log
+*.bak
+*.tmp
+
+# Local Powerful Studies workspace metadata (profile-specific user data)
+workspace.json
+powerful-studies/
+
+# Anki local profiles and add-on metadata
+Anki2/
+addons21/
+meta.json
+user_files/
+
+# Local environments and OS files
+.venv/
+venv/
+node_modules/
+.env
+.env.*
+!.env.example
+.envrc
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+.DS_Store
+Thumbs.db
