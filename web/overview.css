@@ -258,6 +258,9 @@ body:not(.nightMode):not(.night_mode) #ps-overview {
   font-size: 12px;
   padding: 5px 8px;
 }
+#ps-overview .ps-flashcard > header .ps-flashcard__delete {
+  color: #d96464;
+}
 #ps-overview .ps-flashcard__question,
 #ps-overview .ps-flashcard__answer {
   line-height: 1.5;

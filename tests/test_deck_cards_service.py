@@ -46,6 +46,20 @@ class DeckCardsServiceTests(unittest.TestCase):
         self.assertEqual(page.items[0].card_id, 26)
         self.assertEqual(page.items[0].question, "Question 26")
 
+    def test_uses_only_the_answer_side_when_a_template_repeats_the_question(self):
+        card = FakeCard(1)
+        card.answer = lambda: '<b>Question 1</b><hr id="answer"><i>Answer 1</i>'
+
+        item = DeckCardsService._item(card)
+
+        self.assertEqual(item.answer, "Answer 1")
+
+    def test_prefers_the_note_back_field_over_the_rendered_template(self):
+        card = FakeCard(1)
+        card.note = lambda: {"Front": "Question 1", "Back": "Answer 1"}
+
+        self.assertEqual(DeckCardsService.answer_side(card), "Answer 1")
+
     def test_reports_note_impact_separately_from_selected_cards(self):
         note_ids, impacted_cards = DeckCardsService().note_impact(FakeCollection(), [2, 3])
         self.assertEqual(note_ids, {1})

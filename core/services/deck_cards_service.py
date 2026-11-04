@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from math import ceil
 from typing import Any, Sequence
@@ -29,6 +30,10 @@ class DeckCardsService:
     """Reads real cards through Collection search APIs without modifying scheduling."""
 
     PAGE_SIZE = 25
+    ANSWER_DIVIDER = re.compile(
+        r'<hr\b(?=[^>]*\bid\s*=\s*(?:"answer"|\'answer\'|answer))[^>]*>',
+        re.IGNORECASE,
+    )
 
     def page(
         self,
@@ -72,13 +77,26 @@ class DeckCardsService:
             terms.append(search.strip())
         return col.build_search_string(*terms)
 
-    @staticmethod
-    def _item(card: Any) -> DeckCardItem:
+    @classmethod
+    def _item(cls, card: Any) -> DeckCardItem:
         # A safe text representation prevents card template CSS/JS from leaking
         # into Anki's main WebView. Editing opens the native card/note editor.
         return DeckCardItem(
             card_id=int(card.id),
             note_id=int(card.note().id),
             question=strip_html_media(card.question()).strip(),
-            answer=strip_html_media(card.answer()).strip(),
+            answer=strip_html_media(cls.answer_side(card)).strip(),
         )
+
+    @classmethod
+    def answer_side(cls, card: Any) -> str:
+        note = card.note()
+        for field_name in getattr(note, "keys", lambda: ())():
+            if field_name.casefold() in {"back", "verso"}:
+                return note[field_name]
+        return cls._answer_side(card.answer())
+
+    @classmethod
+    def _answer_side(cls, answer_html: str) -> str:
+        parts = cls.ANSWER_DIVIDER.split(answer_html, maxsplit=1)
+        return parts[-1]

@@ -18,7 +18,7 @@
         document.querySelector(".ps-pagination span").textContent.match(/\d+/)?.[0] || 1,
       );
       command("page", { page: action === "previous" ? current - 1 : current + 1 });
-    } else if (["answer", "edit", "delete"].includes(action)) {
+    } else if (["answer", "preview", "edit", "delete"].includes(action)) {
       command(action, { card_id: cardId });
     } else if (action === "open-deck") {
       command(action, { deck_id: Number(target.dataset.deckId) });

@@ -8,15 +8,16 @@ from typing import Any
 
 from anki.decks import DeckId
 from anki.notes import NoteId
-from aqt import gui_hooks, mw
+from aqt import dialogs, gui_hooks, mw
 from aqt.browser.browser import Browser
+from aqt.browser.previewer import Previewer
 from aqt.deckbrowser import DeckBrowser
 from aqt.deckoptions import display_options_for_deck, display_options_for_deck_id
 from aqt.operations.deck import add_deck, remove_decks, rename_deck, set_current_deck
 from aqt.operations.note import remove_notes
 from aqt.overview import Overview
 from aqt.reviewer import Reviewer
-from aqt.qt import QAction, QCursor, QMenu
+from aqt.qt import QAction, QCursor, QHBoxLayout, QMenu, QPushButton
 from aqt.utils import askUser, getOnlyText, showWarning
 
 from ..core.repositories.workspace_repository import WorkspaceRepository
@@ -29,6 +30,43 @@ from ..ui.settings_dialog import SettingsDialog
 
 DEFAULT_SETTINGS = {"enabled": True, "overview_enabled": True, "reviewer_enabled": True, "reviewer_compatibility_mode": True, "reviewer_visual_layout": True, "reviewer_card_width": 960, "reviewer_base_typography": True, "reviewer_highlight_answer": True, "show_descriptions": True, "show_counters": True, "sort": "name", "icon_style": "folder", "animations": True, "ambient_background": False}
 PREFIX = "powerful-studies:"
+
+
+class CardPreviewer(Previewer):
+    def __init__(self, card: Any) -> None:
+        super().__init__(parent=None, mw=mw, on_close=lambda: None)
+        self._card = card
+
+    def card(self) -> Any:
+        return self._card
+
+    def card_changed(self) -> bool:
+        return False
+
+    def _create_gui(self) -> None:
+        super()._create_gui()
+        controls = QHBoxLayout()
+        controls.addStretch()
+        self._show_answer_button = QPushButton("Mostrar verso")
+        self._show_answer_button.setMinimumWidth(180)
+        self._show_answer_button.clicked.connect(self._toggle_side)
+        controls.addWidget(self._show_answer_button)
+        controls.addStretch()
+        self.vbox.insertLayout(1, controls)
+
+    def _toggle_side(self) -> None:
+        self._state = "answer" if self._state == "question" else "question"
+        self.render_card()
+
+    def _render_scheduled(self) -> None:
+        super()._render_scheduled()
+        self._show_answer_button.setText(
+            "Mostrar frente" if self._state == "answer" else "Mostrar verso"
+        )
+        if self._state == "answer" and self._web is not None:
+            answer = DeckCardsService.answer_side(self._card)
+            answer = self.mw.prepare_card_text_for_display(answer)
+            self._web.eval(f"document.getElementById('qa').innerHTML = {json.dumps(answer)};")
 
 
 class ExplorerController:
@@ -307,7 +345,7 @@ class DeckOverviewController:
 
     def _card_html(self, item: Any) -> str:
         checked = " checked" if item.card_id in self.state.selected_card_ids else ""
-        return f'''<article class="ps-flashcard" data-card-id="{item.card_id}"><header><label><input class="ps-card-select" type="checkbox" data-card-id="{item.card_id}"{checked}> Selecionar</label><div><button data-overview-action="answer" data-card-id="{item.card_id}">Ver resposta</button><button data-overview-action="edit" data-card-id="{item.card_id}">Editar</button><button data-overview-action="delete" data-card-id="{item.card_id}" aria-label="Excluir flashcard">•••</button></div></header><div class="ps-flashcard__question">{html.escape(item.question)}</div><div class="ps-flashcard__answer" hidden>{html.escape(item.answer)}</div></article>'''
+        return f'''<article class="ps-flashcard" data-card-id="{item.card_id}"><header><label><input class="ps-card-select" type="checkbox" data-card-id="{item.card_id}"{checked}> Selecionar</label><div><button data-overview-action="answer" data-card-id="{item.card_id}">Ver resposta</button><button data-overview-action="preview" data-card-id="{item.card_id}" aria-label="Visualizar flashcard" title="Visualizar flashcard">&#128065;</button><button data-overview-action="edit" data-card-id="{item.card_id}">Editar</button><button class="ps-flashcard__delete" data-overview-action="delete" data-card-id="{item.card_id}" aria-label="Excluir flashcard" title="Excluir flashcard">&#128465;</button></div></header><div class="ps-flashcard__question">{html.escape(item.question)}</div><div class="ps-flashcard__answer" hidden>{html.escape(item.answer)}</div></article>'''
 
     @staticmethod
     def _subdeck_html(deck: Any) -> str:
@@ -326,7 +364,7 @@ class DeckOverviewController:
             action = payload["action"]
             if not isinstance(action, str):
                 raise ValueError()
-            card_id = int(payload["card_id"]) if action in {"select", "answer", "edit", "delete"} else None
+            card_id = int(payload["card_id"]) if action in {"select", "answer", "preview", "edit", "delete"} else None
             deck_id = int(payload["deck_id"]) if action == "open-deck" else None
         except (ValueError, TypeError, KeyError, json.JSONDecodeError):
             return (True, None)
@@ -358,6 +396,8 @@ class DeckOverviewController:
             self.state.selected_card_ids.clear(); context.refresh()
         elif action == "answer" and card_id is not None:
             context.web.eval(f"document.querySelector('[data-card-id=\"{card_id}\"] .ps-flashcard__answer').hidden = false;")
+        elif action == "preview" and card_id is not None:
+            self._preview(card_id)
         elif action == "edit" and card_id is not None:
             self._edit(card_id)
         elif action == "delete" and card_id is not None:
@@ -386,9 +426,7 @@ class DeckOverviewController:
 
     @staticmethod
     def _open_native_add_cards(deck_id: int) -> None:
-        from aqt.addcards import NewAddCards
-
-        window = NewAddCards(mw)
+        window = dialogs.open("NewAddCards", mw)
         window.load_new_note(deck_id=DeckId(deck_id))
 
     def _update_query(self, payload: dict[str, Any]) -> None:
@@ -416,6 +454,11 @@ class DeckOverviewController:
     def _edit(self, card_id: int) -> None:
         card = mw.col.get_card(card_id)
         Browser(mw, card=card, search=(f"nid:{int(card.note().id)}",))
+
+    @staticmethod
+    def _preview(card_id: int) -> None:
+        previewer = CardPreviewer(mw.col.get_card(card_id))
+        previewer.open()
 
     def _delete_cards(self, overview: Overview, card_ids: set[int]) -> None:
         if not card_ids:
@@ -475,6 +518,8 @@ class ReviewerController:
         if not ExplorerController().settings().get("reviewer_visual_layout", True):
             return text
         side = "question" if kind == "reviewQuestion" else "answer"
+        if side == "answer":
+            text = DeckCardsService.answer_side(card)
         payload_json = self._inline_json(self._payload(card, side))
         bootstrap = ""
         if side == "question":

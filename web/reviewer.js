@@ -23,23 +23,12 @@
     }
   }
 
-  function keepAnswerOnly(back) {
-    const content = back.querySelector(".ps-review-panel__content");
-    const divider = content?.querySelector("hr#answer");
-    if (!content || !divider) return;
-    while (content.firstChild && content.firstChild !== divider) {
-      content.removeChild(content.firstChild);
-    }
-    divider.remove();
-  }
-
   function showAnswerBelowQuestion() {
     const qa = document.getElementById("qa");
     const back = qa?.querySelector(".ps-review-panel--answer");
     if (!qa || !back || !currentQuestion || back.dataset.psCardId !== currentQuestion.cardId)
       return;
 
-    keepAnswerOnly(back);
     // Anki may replace #qa when it reveals an answer. The question panel is
     // retained by this module and then restored as the first visual block.
     qa.replaceChildren(currentQuestion.panel, back);
